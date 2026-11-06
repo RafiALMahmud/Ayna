@@ -91,6 +91,8 @@ def store_config(db) -> StoreConfig:
         categories=[CategorySummary.model_validate(c) for c in category_data],
         payment_methods=methods,
         demo_mode=settings.environment != "production",
+        tryon_provider=settings.tryon_provider,
+        tryon_retention_hours=settings.tryon_retention_hours,
     )
 
 

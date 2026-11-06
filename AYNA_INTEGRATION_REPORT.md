@@ -1,4 +1,15 @@
-# Ayna integration report — 6 November 2026
+# Ayna integration report — 7 November 2026
+
+## Current completion branch synchronization
+
+- [x] Preserved the existing `D:\PROJECTS\Ayna` worktree on `feat/quality-storefront`
+  at `1190fd6`; it was clean and was not switched or rewritten.
+- [x] Verified primary `https://github.com/RafiALMahmud/Ayna.git` and fork
+  `https://github.com/7illz/Ayna.git`, fetched both, and confirmed primary `main` at
+  `bf9e16c` already contains the earlier Developer 2 head.
+- [x] Created separate worktree `D:\PROJECTS\Ayna-complete` and branch
+  `feat/complete-remaining-features` directly from current primary `main`.
+- [x] No merge, force-push, paid provider call or volume deletion was performed.
 
 ## Phase 1 — synchronization and provenance
 
@@ -29,9 +40,9 @@ commits are preserved, not squashed into falsely attributed replacement code.
 - [x] Read the original kit, D2's retrieved `03_CODEX_DEV2.md`, shared contracts,
   implementation reports and current source. Historical reports remain attributed
   evidence, not new execution claims.
-- [x] Produced `AYNA_FEATURE_CHECKLIST.md`: **59 items; 48 complete, 7 partial,
-  4 missing, 0 known broken** in the verified scope. Two items are documented future
-  try-on requirements; no try-on implementation is claimed.
+- [x] Re-audited `AYNA_FEATURE_CHECKLIST.md`: **59 items; 50 complete, 9 partial,
+  0 missing, 0 known broken**. Partial means an implemented boundary still lacks live
+  provider/tool/model acceptance; it is not relabeled complete.
 - [x] Preserved the user's regular-commerce scope: 3D is optional; clothing/shoe try-on
   is a distinct future project, not the definition of the whole store.
 
@@ -76,12 +87,34 @@ commits are preserved, not squashed into falsely attributed replacement code.
   alignment is invented: hosted reports remain unknown pending defensible correspondence.
 - [~] Meshy HTTP contract is tested with a simulated provider; an authorized real
   product/paid account fidelity assessment remains required.
-- [~] Real SAM 2/DINOv2 inference needs local weights/hardware acceptance. Added a true
-  local-weight inference smoke helper instead of describing a random tensor test as inference.
-- [ ] Tripo, Blender optimization, localized OpenCV/logo validation and working try-on
-  remain the explicit backlog. Stale/crashed worker and provider reconciliation is manual.
+- [x] Real official SAM 2.1 Hiera Tiny and DINOv2 Small local-weight inference ran on the
+  RTX 4050; measured device, latency and peak allocation are in `AYNA_TEST_REPORT.md`.
+- [~] Tripo v3, Blender optimization, OpenCV alignment and try-on are now implemented at
+  their safe boundaries. Tripo has simulated HTTP only; Blender is absent; OpenCV lacks a
+  representative real dataset; try-on is a private diagnostic without real synthesis.
 
-## Phase 5 — execution evidence
+## Phase 5 — remaining-feature implementation
+
+- [x] Added Tripo v3 multipart upload, named multiview submission, bounded task polling,
+  strict CDN download and embedded GLB validation. Only an explicitly selected provider
+  is used; ambiguous submission is never retried and no paid call ran.
+- [x] Added generation heartbeats plus idempotent stale-job recovery. Mock/never-submitted
+  jobs requeue; known hosted IDs resume polling without POST; unknown in-flight paid jobs
+  fail `AMBIGUOUS_PROVIDER_SUBMISSION` rather than risk another charge.
+- [x] Added opt-in ORB/RANSAC alignment gates. Same direction labels alone now produce
+  `not_evaluated`; metrics exist only after correspondence evidence. Localized differences
+  are human inspection cues, not logo/text recognition.
+- [~] Added isolated optional Blender decimation with timeout and strict pre/post size,
+  geometry, bounds, material/texture/UV and rendered-appearance gates. The real executable
+  is not installed on this host; fake-subprocess preservation/fallback tests pass.
+- [~] Added clothing/shoe private diagnostic jobs and UI: authenticated consent, image
+  sanitation, explicit framing, async state, owner-only retrieval, 24-hour default retention
+  and deletion. No generated try-on is returned because no legally approved real model or
+  provider is configured; it never claims sizing or fit.
+- [x] Added reversible `24df91a0bc72` migration, regenerated OpenAPI then TypeScript types,
+  and retained ordinary catalog, checkout, seller, admin, orders and 3D behavior.
+
+## Phase 6 — execution evidence
 
 Exact commands, final test counts, earlier failures/fixes and unexecuted GPU/paid tests
 are recorded in `AYNA_TEST_REPORT.md`. Original and commerce tests remain enabled.

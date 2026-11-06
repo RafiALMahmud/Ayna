@@ -305,7 +305,7 @@ export function Studio({ config }: { config: Config }) {
             <span className="muted small">
               {(job?.provider || config.provider) === 'mock'
                 ? 'Mock provider · No credits used'
-                : 'Meshy · Paid provider enabled'}
+                : `${(job?.provider || config.provider) === 'tripo' ? 'Tripo' : 'Meshy'} · Paid provider enabled`}
             </span>
           </div>
           {job && (job.status === 'queued' || job.status === 'processing') && (
@@ -369,7 +369,7 @@ export function Studio({ config }: { config: Config }) {
                     ? 'Starting…'
                     : config.provider === 'mock'
                       ? 'Generate mock preview'
-                      : 'Generate with Meshy (uses credits)'}
+                      : `Generate with ${config.provider === 'tripo' ? 'Tripo' : 'Meshy'} (uses credits)`}
                 </button>
               )}
               {job?.status === 'succeeded' && selected.publish_status !== 'draft' && (

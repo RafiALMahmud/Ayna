@@ -70,6 +70,8 @@ class GenerationJob(Base):
     status: Mapped[str] = mapped_column(String(32), default="queued")
     progress: Mapped[int] = mapped_column(default=0)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=now)
+    heartbeat_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=now)
+    recovery_count: Mapped[int] = mapped_column(default=0)
     finished_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
     error_code: Mapped[str | None] = mapped_column(String(64))
     model_key: Mapped[str | None] = mapped_column(String(255))
@@ -108,3 +110,35 @@ class ReviewAudit(Base):
     decision: Mapped[str] = mapped_column(String(16))
     notes: Mapped[str] = mapped_column(String(2000), default="")
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=now)
+
+
+class TryOnJob(Base):
+    """Private, user-owned try-on input and asynchronous processing state."""
+
+    __tablename__ = "tryon_jobs"
+    __table_args__ = (
+        UniqueConstraint("user_id", "idempotency_key", name="uq_tryon_request"),
+        CheckConstraint(
+            "status IN ('queued','processing','needs_review','succeeded','failed','deleted')",
+            name="tryon_status",
+        ),
+        CheckConstraint("progress >= 0 AND progress <= 100", name="tryon_progress"),
+    )
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=new_id)
+    user_id: Mapped[str] = mapped_column(ForeignKey("users.id"), index=True)
+    product_id: Mapped[str] = mapped_column(ForeignKey("products.id"), index=True)
+    idempotency_key: Mapped[str] = mapped_column(String(128))
+    provider: Mapped[str] = mapped_column(String(32), default="diagnostic")
+    framing: Mapped[str] = mapped_column(String(20))
+    consent_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
+    no_training: Mapped[bool] = mapped_column(default=True)
+    source_key: Mapped[str | None] = mapped_column(String(255))
+    result_key: Mapped[str | None] = mapped_column(String(255))
+    status: Mapped[str] = mapped_column(String(32), default="queued")
+    progress: Mapped[int] = mapped_column(default=0)
+    diagnostics: Mapped[dict] = mapped_column(JSON, default=dict)
+    error_code: Mapped[str | None] = mapped_column(String(64))
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=now)
+    expires_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
+    finished_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    deleted_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))

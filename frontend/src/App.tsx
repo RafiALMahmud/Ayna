@@ -52,13 +52,15 @@ export function StudioApp() {
             <Layers3 size={22} />
             <h3>A space to experiment.</h3>
             <p>
-              {config?.provider === 'meshy'
+              {config?.provider !== 'mock'
                 ? 'Hosted reconstruction is enabled. New generation requests use credits.'
                 : 'Explore the complete workflow with a free, deterministic mock provider.'}
             </p>
             <span>
               <span className="status-dot" />{' '}
-              {config?.provider === 'meshy' ? 'Meshy enabled' : 'Mock mode is on'}
+              {config?.provider !== 'mock'
+                ? `${config?.provider === 'tripo' ? 'Tripo' : 'Meshy'} enabled`
+                : 'Mock mode is on'}
             </span>
           </div>
           <a className="docs-link" href={`${API_BASE}/docs`} target="_blank" rel="noreferrer">

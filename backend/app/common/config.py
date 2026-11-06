@@ -11,12 +11,17 @@ class Settings(BaseSettings):
     environment: Literal["development", "production", "test"] = "development"
     database_url: str = "sqlite:///./.data/ayna.db"
     redis_url: str = "redis://localhost:6379/0"
-    ai_provider: Literal["mock", "meshy"] = "mock"
+    ai_provider: Literal["mock", "meshy", "tripo"] = "mock"
     meshy_api_key: str = ""
     meshy_daily_request_limit: int = Field(default=0, ge=0, le=100)
     generation_seller_daily_limit: int = Field(default=20, ge=1, le=100)
+    generation_stale_seconds: int = Field(default=600, ge=60, le=7200)
     meshy_poll_seconds: int = Field(default=10, ge=1, le=30)
     meshy_timeout_seconds: int = Field(default=900, ge=30, le=1800)
+    tripo_api_key: str = ""
+    tripo_daily_request_limit: int = Field(default=0, ge=0, le=100)
+    tripo_poll_seconds: int = Field(default=10, ge=1, le=30)
+    tripo_timeout_seconds: int = Field(default=900, ge=30, le=1800)
     queue_mode: Literal["rq", "inline"] = "rq"
     storage_backend: Literal["local", "s3"] = "local"
     local_storage_path: str = ".data/assets"
@@ -49,9 +54,17 @@ class Settings(BaseSettings):
     quality_max_image_size: int = Field(default=384, ge=128, le=1024)
     quality_enable_sam2: bool = False
     quality_enable_dinov2: bool = False
+    quality_enable_opencv_alignment: bool = False
     quality_sam2_config: str | None = None
     quality_sam2_checkpoint: str | None = None
     quality_dinov2_model_path: str | None = None
+    blender_optimization_enabled: bool = False
+    blender_executable: str | None = None
+    blender_timeout_seconds: int = Field(default=180, ge=30, le=900)
+    blender_target_triangles: int = Field(default=20_000, ge=500, le=100_000)
+    tryon_provider: Literal["disabled", "diagnostic"] = "diagnostic"
+    tryon_retention_hours: int = Field(default=24, ge=1, le=168)
+    tryon_max_image_bytes: int = Field(default=10 * 1024 * 1024, gt=0)
 
     @model_validator(mode="after")
     def guard_production(self) -> "Settings":
@@ -60,6 +73,11 @@ class Settings(BaseSettings):
         if self.ai_provider == "meshy":
             if not self.meshy_api_key or not self.meshy_daily_request_limit:
                 raise ValueError("Meshy requires a server key and a positive daily request cap")
+            if self.queue_mode != "rq":
+                raise ValueError("Hosted generation requires the background RQ worker")
+        if self.ai_provider == "tripo":
+            if not self.tripo_api_key or not self.tripo_daily_request_limit:
+                raise ValueError("Tripo requires a server key and a positive daily request cap")
             if self.queue_mode != "rq":
                 raise ValueError("Hosted generation requires the background RQ worker")
         if self.environment == "production":
@@ -75,6 +93,8 @@ class Settings(BaseSettings):
             raise ValueError("SAM 2 requires explicit local config and checkpoint paths")
         if self.quality_enable_dinov2 and not self.quality_dinov2_model_path:
             raise ValueError("DINOv2 requires an explicit local model path")
+        if self.blender_optimization_enabled and not self.blender_executable:
+            raise ValueError("Blender optimization requires an explicit local executable path")
         return self
 
 

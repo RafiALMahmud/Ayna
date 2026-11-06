@@ -118,7 +118,11 @@ priced Meshy generation button once. Five photos remain stored; the adapter sele
 most four with front first. Record task ID, actual credits from the provider dashboard,
 GLB, errors and all visual mismatches. Never retry an ambiguous submission before checking
 the provider dashboard. Failed/cancelled requests still consume the local rolling-24-hour
-request allowance. Tripo is unsupported. Revert to mock and cap zero after testing.
+request allowance. Tripo is also available only when selected explicitly with its own key
+and positive `TRIPO_DAILY_REQUEST_LIMIT`; it requires at least two named views total,
+including `front`.
+Never switch automatically or retry an ambiguous submission. Revert to mock and cap zero
+after testing.
 
 Reference: [official Meshy multi-image API](https://docs.meshy.ai/en/api/multi-image-to-3d).
 The adapter is tested with HTTP simulations; this guide is not a live-provider PASS.
@@ -158,7 +162,10 @@ These commands run real local mask/embedding inference only if packages and weig
 They report elapsed time, actual device and peak CUDA allocation. DINO uses an identical-image
 sanity check, not product-identity verification. Record failures instead of marking PASS
 when a package/checkpoint is absent. Optional loader and OOM fallback logic is tested with
-substitutes in the baseline suite; it still needs real hardware acceptance.
+substitutes in the baseline suite. On 7 November 2026 this host also ran real local inference:
+SAM 2.1 Hiera Tiny on CUDA in 6.905 s / 597.84 MiB peak, and DINOv2 Small in 29.057 s /
+104.30 MiB peak. This is a loader and identical-image sanity acceptance, not product-fidelity
+or identity validation.
 
 Use batch one, 384 px, inference mode and one GPU job at a time. The runtime retries CUDA
 OOM once on CPU after clearing cached models. A second failure remains unavailable.
@@ -170,16 +177,20 @@ an isolated process with a timeout. No local reconstruction model is included he
 6 GB does not imply a full shape+texture pipeline fits. Never install large weights or
 claim photorealistic reconstruction simply because CUDA is available.
 
-## Planned virtual try-on requirements — not implemented
+## Virtual try-on diagnostic — real synthesis remains partial
 
-- **Selfie/upper-body clothing:** explicitly consented image capture/upload, supported
-  garment selection, pose and occlusion handling, lighting/size disclosures, and an
-  original-photo fallback. A head-only selfie cannot supply missing body measurements.
-- **Full-body clothing/shoes:** consented full-body photo with suitable framing, body/foot
-  pose estimation, garment/shoe placement, preserved personal identity, occlusion and
-  fit limitations. Clothing/shoes only; other products use ordinary commerce/3D previews.
-- **Privacy/acceptance:** private temporary storage, retention/deletion controls, revocable
-  signed access, no default training use, clear synthetic-result labels, malicious-file
-  validation, opt-out/deletion testing and representative human-reviewed outputs.
-- A product viewer that rotates a GLB satisfies none of these try-on inference requirements.
-  No current endpoint, button or test should advertise functioning try-on.
+The implemented diagnostic is available only for shirts, pants and shoes. It requires an
+authenticated customer, explicit processing consent and no-training acknowledgement.
+Shirts accept upper- or full-body framing; pants/shoes require a portrait full-body image.
+The upload is validated, metadata-stripped, stored privately, processed as an asynchronous
+job, retained for at most `TRYON_RETENTION_HOURS` (24 by default) and deletable immediately.
+
+Set `TRYON_PROVIDER=diagnostic` for this safe pathway or `disabled` to turn it off. It checks
+dimensions/aspect framing only. Body/feet visibility, pose, occlusion and placement remain
+`not_evaluated`; no result image is created. The UI and API explicitly say it does not verify
+sizing or fit. Test account isolation, consent, invalid framing, deletion and retention with
+`pytest -q tests/test_tryon.py` and the `TryOnPanel` frontend tests.
+
+A real completion still requires a legally approved model/provider, weights or credentials,
+representative human-reviewed outputs, body/foot and pose diagnostics, occlusion handling,
+and measured operation within the hardware/privacy budget. A rotating GLB is not try-on.

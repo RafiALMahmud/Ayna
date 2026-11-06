@@ -1,4 +1,57 @@
-# Ayna integration test report — 6 November 2026
+# Ayna integration test report — 7 November 2026
+
+## Remaining-features branch — current host evidence
+
+Worktree: `D:\PROJECTS\Ayna-complete`, branch `feat/complete-remaining-features`, based on
+primary `main` `bf9e16c`. No paid-provider key, request or credit was used.
+
+| Exact command | Result |
+| --- | --- |
+| `python -m pytest -q --basetemp ..\.pytest-full` (backend) | PASS: **91 passed, 1 skipped**, 77.14 s. Skip is the optional OpenCV test in the CPU environment. |
+| Vision environment `pytest tests/test_opencv_alignment.py -q` with backend packages on `PYTHONPATH` | PASS: **2 passed**, real OpenCV/NumPy, 3.20 s. |
+| `python -m ruff check .` / `python -m ruff format --check .` / `python -m mypy app` | PASS; 73 files formatted, 45 app files type-checked. |
+| `python -m alembic heads` / `upgrade head` / `check` | PASS; single `24df91a0bc72` head, no new operations. |
+| `python -m scripts.export_openapi` then `npm run types:api` | PASS; OpenAPI and TypeScript generated sequentially. |
+| `npm run lint` / `npm run typecheck` / `npm test -- --run` | PASS; **15 tests in 7 files**. |
+| `npm run build` | PASS; main 353.22 kB raw/102.94 kB gzip, ModelViewer 182.21/58.01, Three viewer 809.04/204.70. Existing large lazy Three chunk warning remains. |
+| Tripo/Meshy/Blender/recovery focused backend tests | PASS within the 91-test suite; provider HTTP and Blender subprocess are simulated, not live acceptance. |
+| `docker version` | BLOCKED: CLI 29.9.2 exists, Docker config is access-denied and `docker_engine` pipe is absent. |
+| `docker compose config --quiet` | BLOCKED: this CLI has no Compose plugin (`unknown flag: --quiet`). |
+| `wsl --status` | BLOCKED: WSL is not installed. No volumes or data were deleted. |
+| `blender --version` | BLOCKED: Blender is not installed or on PATH. |
+
+`nvidia-smi` reports an NVIDIA GeForce RTX 4050 Laptop GPU, driver 616.92, 6,141 MiB
+VRAM and 4,597 MiB free immediately before the final measurements. The OS API did not
+return a reliable RAM total, so the previously stated 16 GB was not relabeled as a new
+measurement.
+
+Real official local-weight inference, weights outside Git:
+
+| Exact command scope | Result |
+| --- | --- |
+| `vision_inference_smoke.py --model sam2 ... --device auto` | PASS on CUDA: SAM 2.1 Hiera Tiny, 6.905 s, 597.84 MiB peak, 102,296 mask pixels. |
+| `vision_inference_smoke.py --model dinov2 ... --device auto` | PASS on CUDA: DINOv2 Small, 29.057 s, 104.30 MiB peak, identical-image cosine 0.99999994. This is advisory sanity only, not identity or fidelity. |
+
+SAM checkpoint SHA-256 is
+`7402E0D864FA82708A20FBD15BC84245C2F26DFF0EB43A4B5B93452DEB34BE69`;
+DINO safetensors SHA-256 is
+`AE1E99FCEFD534ED978CDEB8326F08030C96E28B7A81FFCBC98A857C84D14BE1`,
+Hugging Face revision `ed25f3a31f01632728cabb09d1542f84ab7b0056`. Both projects declare
+Apache-2.0. Model weights, customer photos and credentials are untracked.
+
+Not executed on this branch: paid Meshy/Tripo requests or visual fidelity comparison,
+real Blender/bpy optimization, a real try-on model/provider, local Windows Docker execution,
+real Stripe/SMTP/carrier services, or a second physical PC. Reasons are respectively absent
+spending authorization/keys, missing Blender, no approved try-on model, missing local
+WSL/daemon/Compose plugin, and absent external infrastructure.
+
+GitHub Actions run `42298719303` on commit `73840bb` supplied current Linux container
+evidence: backend PASS (1m34s), frontend PASS (42s), and Compose smoke PASS (4m23s).
+The Compose job executed config validation, full build/wait, migrations/startup,
+PostgreSQL/Redis/RQ/MinIO mock generation/publication/revocation smoke, commerce smoke and
+Playwright desktop/mobile journeys, then retained browser artifacts and stopped containers.
+This is exact-branch CI evidence, not a second physical-PC claim. The local Windows Docker
+blocker remains accurately recorded above.
 
 Run in `E:\Ayna-integration` on Windows 11, Python 3.12.6, Node 22 and Chromium.
 This is one host plus independently executed GitHub Linux CI, not two physical laptop
@@ -96,7 +149,7 @@ not establish paid API availability or the appearance/fidelity of a real Meshy r
   cart refresh completed, then the delayed login redirect replaced the seller page. Moved
   the cart refresh before publishing signed-in navigation and added a deferred-cart UI test.
 
-## GPU and other unavailable tests
+## Historical integration-host GPU and other unavailable tests
 
 | Executed command | Actual result |
 | --- | --- |

@@ -133,3 +133,53 @@ requires the latest successful model and a non-failed quality report. Public lis
 image and model routes re-check current approval; corruption or a missing current model is
 treated as unpublished. The browser keeps original photographs visible and falls back to
 them when WebGL or the GLB fails.
+
+## OpenCV alignment and interpretable measurements
+
+`QUALITY_ENABLE_OPENCV_ALIGNMENT=false` by default. When enabled, `opencv_alignment.py`
+uses bounded ORB features, a ratio test and RANSAC homography. A view is accepted only with
+at least 12 candidate matches, at least 8 inliers, an inlier ratio of 0.5, and plausible
+warped-area bounds. A shared camera label alone is never sufficient. Rejected alignment
+returns no comparison metrics.
+
+After accepted alignment, the engine reports foreground silhouette IoU,
+lighting-normalized LAB chroma distance, Sobel texture-gradient difference and up to three
+3×3 image regions with the largest aligned pixel difference. The regions help a reviewer
+look at logos, lettering or details; the system does not recognize or verify any logo/text.
+The current CPU GLB renderer does not support every texture, compression, skin or animation
+feature, so provider assets outside its supported subset remain `not_evaluated`.
+
+## Optional Blender optimization
+
+Blender is disabled by default and is not part of the API/worker CPU baseline. Configure:
+
+```text
+BLENDER_OPTIMIZATION_ENABLED=true
+BLENDER_EXECUTABLE=C:\Program Files\Blender Foundation\Blender 4.3\blender.exe
+BLENDER_TIMEOUT_SECONDS=180
+BLENDER_TARGET_TRIANGLES=20000
+```
+
+The worker invokes Blender headlessly in a temporary directory. The source GLB is retained.
+The candidate must be smaller, meet the triangle target when decimation is needed, keep
+bounds within 2%, retain material/texture/image/UV manifest counts and stay within an 0.08
+mean rendered-difference bound. Failure, timeout or degradation publishes the untouched
+original. Tests exercise the preservation/fallback logic with a fake subprocess; Blender was
+not installed on the measured host, so this pathway remains partial until tested with real
+textured GLBs and `bpy`.
+
+## Measured local model evidence — 7 November 2026
+
+Hardware reported by `nvidia-smi`: NVIDIA GeForce RTX 4050 Laptop GPU, driver 616.92,
+6,141 MiB VRAM (4,597 MiB free immediately before the final run). Official weights are
+outside Git under `D:\models\ayna-vision`.
+
+| Model | Provenance / license | SHA-256 | Result |
+| --- | --- | --- | --- |
+| SAM 2.1 Hiera Tiny | Meta official checkpoint; Apache-2.0 code/model project | `7402E0D864FA82708A20FBD15BC84245C2F26DFF0EB43A4B5B93452DEB34BE69` | CUDA pass; 6.905 s; 597.84 MiB peak; 102,296 foreground pixels. |
+| DINOv2 Small | `facebook/dinov2-small`, revision `ed25f3a31f01632728cabb09d1542f84ab7b0056`; Apache-2.0 | `AE1E99FCEFD534ED978CDEB8326F08030C96E28B7A81FFCBC98A857C84D14BE1` | CUDA pass; 29.057 s; 104.30 MiB peak; identical-image cosine 0.99999994. |
+
+These are inference/load sanity checks on one demo photograph, not product reconstruction,
+identity, quality or fidelity acceptance. The DINO value is intentionally not a threshold or
+proof. `worker/requirements-vision.txt` includes the locked backend requirements so a fresh
+isolated environment can run the scripts without borrowing another environment's packages.

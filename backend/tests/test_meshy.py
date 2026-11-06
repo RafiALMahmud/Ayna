@@ -144,6 +144,30 @@ def test_meshy_does_not_retry_an_ambiguous_submission(monkeypatch):
     assert len(calls) == 1
 
 
+def test_meshy_reconciles_known_task_without_resubmission(monkeypatch):
+    calls = []
+
+    def handler(request):
+        calls.append(request)
+        if request.url.host == "assets.meshy.ai":
+            return httpx.Response(200, content=dummy_glb())
+        return httpx.Response(
+            200,
+            json={
+                "status": "SUCCEEDED",
+                "progress": 100,
+                "model_urls": {"glb": "https://assets.meshy.ai/output/model.glb"},
+            },
+        )
+
+    result = adapter(monkeypatch, handler).generate(
+        ["front", "left"], existing_task_id="known-task"
+    )
+    assert result.glb == dummy_glb()
+    assert all(request.method == "GET" for request in calls)
+    assert result.metadata["request_count"] == 0
+
+
 def test_meshy_bounds_polling_and_rejects_redirects(monkeypatch):
     def pending(request):
         return httpx.Response(200, json={"result": "task", "status": "PENDING"})

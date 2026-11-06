@@ -67,16 +67,22 @@ def start_generation(
     )
     if seller_jobs >= settings.generation_seller_daily_limit:
         raise HTTPException(429, "Your daily generation request limit has been reached")
-    if settings.ai_provider == "meshy":
+    if settings.ai_provider in {"meshy", "tripo"}:
+        limit = (
+            settings.meshy_daily_request_limit
+            if settings.ai_provider == "meshy"
+            else settings.tripo_daily_request_limit
+        )
+        key = settings.meshy_api_key if settings.ai_provider == "meshy" else settings.tripo_api_key
         used = (
             db.scalar(
                 select(func.count()).select_from(
-                    recent.where(GenerationJob.provider == "meshy").subquery()
+                    recent.where(GenerationJob.provider == settings.ai_provider).subquery()
                 )
             )
             or 0
         )
-        if not settings.meshy_api_key or used >= settings.meshy_daily_request_limit:
+        if not key or used >= limit:
             raise HTTPException(429, "Hosted generation is disabled or its daily cap is exhausted")
     job = GenerationJob(
         product_id=product.id, idempotency_key=idempotency_key, provider=settings.ai_provider
@@ -94,7 +100,8 @@ def start_generation(
                 job.id,
                 job_id=job.id,
                 result_ttl=86400,
-                job_timeout=settings.meshy_timeout_seconds + 180,
+                job_timeout=max(settings.meshy_timeout_seconds, settings.tripo_timeout_seconds)
+                + 180,
             )
     except Exception as exc:
         job.status, job.error_code, job.finished_at = "failed", "QUEUE_UNAVAILABLE", now()

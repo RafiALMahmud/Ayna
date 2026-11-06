@@ -18,15 +18,37 @@ and private MinIO storage. Local mock AI needs no GPU or paid API keys.
 - Optional Stripe hosted checkout/webhooks/refunds and SMTP password recovery adapters.
 
 Products can be sold without generating a 3D model. The separate product studio retains
-its reviewed, explicitly labeled **dummy GLB** workflow. Hosted reconstruction has an
-explicitly enabled Meshy adapter, tested with simulated HTTP responses but not a paid
-live task. Photorealistic accuracy is unverified. Clothing/shoe try-on remains
-unimplemented; the mock provider never reconstructs the uploaded product.
+its reviewed, explicitly labeled **dummy GLB** workflow. Hosted reconstruction has explicit
+Meshy and Tripo adapters, tested with simulated HTTP responses but not paid live tasks.
+Photorealistic accuracy is unverified. Shirts, pants and shoes have a private **diagnostic**
+try-on workflow for consent, framing, job state, retention and deletion; it does not generate
+a real try-on image. The mock provider never reconstructs the uploaded product.
 
 Integration audit and operating instructions:
 [feature checklist](AYNA_FEATURE_CHECKLIST.md), [integration report](AYNA_INTEGRATION_REPORT.md),
 [executed test report](AYNA_TEST_REPORT.md), [both-PC instructions](AYNA_BOTH_PC_TESTING.md).
 The integrated branch preserves the regular shop and Developer 2's quality/viewer work.
+
+## Optional AI, 3D and try-on boundaries
+
+Meshy or Tripo requires explicit provider selection, a server-side key, a positive daily cap
+and RQ. Ayna never switches paid providers automatically. Known provider task IDs can resume
+polling after worker failure; ambiguous paid submissions fail rather than being resubmitted.
+Run `python -m scripts.reconcile_generation` for an explicit recovery sweep.
+
+OpenCV alignment, SAM 2, DINOv2 and Blender are opt-in. SAM/DINO accept only explicit local
+paths and never download weights. Blender runs in an isolated subprocess and publishes an
+optimized GLB only after size, geometry, material/UV and rendered-appearance gates; otherwise
+the original is retained. Keep weights outside Git. See
+[quality implementation](docs/DEV2_QUALITY_STOREFRONT.md) and
+[test results](AYNA_TEST_REPORT.md) for installation, provenance and measured evidence.
+
+Try-on defaults to `TRYON_PROVIDER=diagnostic` and `TRYON_RETENTION_HOURS=24`. Customer photos
+are metadata-stripped, private, owner-only and immediately deletable; expired assets are purged
+by workers. Set the provider to `disabled` to disable uploads. Diagnostic mode checks basic
+dimensions and framing only; pose, feet/body visibility and occlusion remain `not_evaluated`,
+and the UI never presents it as sizing or physical-fit evidence. See the
+[private diagnostic contract](docs/TRYON_DIAGNOSTIC.md).
 
 ## Run locally on Windows
 
