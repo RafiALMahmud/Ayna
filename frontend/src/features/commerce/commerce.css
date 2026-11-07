@@ -3324,3 +3324,64 @@
     height: 120px;
   }
 }
+
+.shop-tryon {
+  margin-top: 24px;
+  padding: 22px;
+  border: 1px solid #dce3d2;
+  border-radius: 8px;
+  background: #f8faf4;
+}
+.shop-tryon-heading {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+}
+.shop-tryon-heading h2,
+.shop-tryon-heading p {
+  margin: 0;
+}
+.shop-tryon-form {
+  margin-top: 18px;
+}
+.shop-tryon-form .shop-check {
+  display: flex;
+  flex-direction: row;
+  align-items: flex-start;
+  gap: 9px;
+  font-weight: 400;
+}
+.shop-tryon-form .shop-check input {
+  width: auto;
+  margin-top: 3px;
+}
+.shop-tryon-status {
+  display: grid;
+  gap: 12px;
+  margin-top: 18px;
+}
+.shop-tryon-status img {
+  width: min(100%, 520px);
+  max-height: 620px;
+  object-fit: contain;
+  background: white;
+}
+.shop-tryon-status .shop-button {
+  justify-self: start;
+}
+.shop-tryon-privacy {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  margin-top: 16px;
+  font-size: 12px;
+  color: #55704d;
+}
+@media (max-width: 650px) {
+  .shop-tryon {
+    padding: 17px;
+  }
+  .shop-tryon .shop-button {
+    width: 100%;
+  }
+}

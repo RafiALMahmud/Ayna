@@ -14,6 +14,7 @@ from app.common.config import get_settings
 class Storage(Protocol):
     def put(self, key: str, data: bytes, content_type: str) -> None: ...
     def get(self, key: str) -> bytes: ...
+    def delete(self, key: str) -> None: ...
     def ready(self) -> None: ...
 
 
@@ -35,6 +36,9 @@ class LocalStorage:
 
     def get(self, key: str) -> bytes:
         return self.path(key).read_bytes()
+
+    def delete(self, key: str) -> None:
+        self.path(key).unlink(missing_ok=True)
 
     def ready(self) -> None:
         if not self.root.is_dir():
@@ -59,6 +63,9 @@ class S3Storage:
 
     def get(self, key: str) -> bytes:
         return self.client.get_object(Bucket=self.bucket, Key=key)["Body"].read()
+
+    def delete(self, key: str) -> None:
+        self.client.delete_object(Bucket=self.bucket, Key=key)
 
     def ready(self) -> None:
         self.client.head_bucket(Bucket=self.bucket)

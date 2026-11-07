@@ -10,7 +10,7 @@ from sqlalchemy import select
 
 from app.common.config import Settings, get_settings
 from app.common.db import SessionLocal
-from app.common.models import GenerationJob, QualityReport, ReviewAudit
+from app.common.models import GenerationJob, Product, QualityReport, ReviewAudit
 from app.common.storage import LocalStorage, get_storage
 from app.modules.generation.providers import MockProvider, dummy_glb
 from app.modules.generation.tasks import process_job
@@ -200,6 +200,65 @@ def test_queue_outage_does_not_leave_product_generating(client, owner, monkeypat
             headers={**owner, "Idempotency-Key": "outage"},
         )
     assert response.status_code == 503 and "private queue" not in response.text
+
+
+def test_seller_can_cancel_queued_generation_and_revoke_publication(client, owner):
+    product = create(client, owner)
+    with SessionLocal() as db:
+        row = db.get(Product, product["id"])
+        assert row is not None
+        row.publish_status = "generating"
+        job = GenerationJob(
+            product_id=row.id,
+            idempotency_key="cancel-test",
+            provider="local_triposr",
+            status="queued",
+        )
+        db.add(job)
+        db.commit()
+        job_id = job.id
+
+    response = client.delete(f"/api/v1/generation-jobs/{job_id}", headers=owner)
+    assert response.status_code == 200
+    assert response.json()["status"] == "cancelled"
+    with SessionLocal() as db:
+        cancelled = db.get(GenerationJob, job_id)
+        assert cancelled.error_code == "CANCELLED_BY_SELLER"
+        assert cancelled.model_key is None
+
+
+def test_late_local_generation_cannot_publish_after_cancellation(client, owner, monkeypatch):
+    product = create(client, owner)
+    with SessionLocal() as db:
+        row = db.get(Product, product["id"])
+        assert row is not None
+        row.publish_status = "generating"
+        job = GenerationJob(
+            product_id=row.id,
+            idempotency_key="late-cancel-test",
+            provider="local_triposr",
+            status="queued",
+        )
+        db.add(job)
+        db.commit()
+        job_id = job.id
+
+    def late_result(_provider, _images):
+        with SessionLocal() as db:
+            row = db.get(GenerationJob, job_id)
+            assert row is not None
+            row.status = "cancelled"
+            row.error_code = "CANCELLED_BY_SELLER"
+            db.commit()
+        return MockProvider().generate([])
+
+    monkeypatch.setattr("app.modules.generation.tasks.LocalTripoSRProvider.generate", late_result)
+    process_job(job_id)
+    with SessionLocal() as db:
+        row = db.get(GenerationJob, job_id)
+        assert row is not None
+        assert row.status == "cancelled"
+        assert row.model_key is None
     assert (
         client.get(f"/api/v1/products/{product['id']}", headers=owner).json()["publish_status"]
         == "draft"
@@ -264,6 +323,23 @@ def test_production_guards_and_local_path_safety(tmp_path):
         Settings(environment="production", dev_auth_enabled=True)
     with pytest.raises(ValueError):
         Settings(ai_provider="meshy")
+    with pytest.raises(ValueError, match="Local TripoSR requires"):
+        Settings(ai_provider="local_triposr")
+    with pytest.raises(ValueError, match="noncommercial NVIDIA"):
+        Settings(
+            tryon_provider="fashn_vton",
+            tryon_python="python.exe",
+            tryon_source_path="source",
+            tryon_weights_path="weights",
+        )
+    configured = Settings(
+        tryon_provider="fashn_vton",
+        tryon_python="python.exe",
+        tryon_source_path="source",
+        tryon_weights_path="weights",
+        tryon_fashn_noncommercial_dependency_acknowledged=True,
+    )
+    assert configured.tryon_provider == "fashn_vton"
     with pytest.raises(ValueError):
         LocalStorage(str(tmp_path)).get("../secret")
 

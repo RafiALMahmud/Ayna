@@ -1,4 +1,80 @@
-# Ayna integration test report — 6 November 2026
+# Ayna integration test report — 7 November 2026
+
+## Local-AI completion branch — new evidence
+
+Branch `feat/local-ai-completion` starts at `30ecc48`. No paid API, credit card, hosted
+inference endpoint or trial was used.
+
+| Check | Actual result |
+| --- | --- |
+| Offline TripoSR, Ayna demo bag, 128³ extraction | PASS: valid 584,172-byte GLB, 29,156 triangles; CUDA 10.31 s and 1,867.54 MiB peak. Output SHA-256 `D943FBB1CF0D1BCBFBA7E5C93A580D89103AEDE651A86C08AF9DED86A4D3D248`. Human review rejected the inferred back/side geometry as poor. |
+| Offline TripoSR + bounded OpenCV GrabCut, demo headphones | PASS technically: valid 598,172-byte GLB, 29,856 triangles; CUDA 22.88 s and 1,867.54 MiB peak. Output SHA-256 `5151008E240E81C6E4A89F09885A682CC844D1F0B7E95D0477CD4E7D1A5B994C`. Human review again found poor inferred geometry; not approved for storefront publication. |
+| Texture/vertex-color inspection renderer | PASS on the TripoSR vertex-color GLB and Khronos DamagedHelmet textured GLB: deterministic four-view renders. Metallic/roughness, animation, skins and compressed meshes remain unsupported. |
+| Blender 5.2.3 real `bpy` run | EXECUTED on Khronos DamagedHelmet (evaluation asset with a CC BY-NC antecedent): 3,773,916 → 8,193,144 bytes at a 5,000-triangle target. Export lost one of five texture/image entries, so acceptance correctly failed and the production adapter retained the original. This is real failure-path acceptance, not an optimization PASS. |
+| Offline FASHN VTON v1.5 official example | PASS technically: generated 768×1024, 561,264-byte PNG in 93.942 s with 3,727.79 MiB peak PyTorch CUDA allocation; SHA-256 `977A72620A563781AED34E70A46B96468E220927D0AD4E53B12CFF8381948E91`. Main bf16 synthesis used CUDA; ONNX pose estimation fell back to CPU. Human review found a coherent clothing preview. This remains demo-only because the required parser has noncommercial terms. |
+| Backend suite and static gates | PASS: 94 passed, 1 skipped in 121.90 s; Ruff check, Ruff format check and MyPy all PASS. The skip is the optional OpenCV case in the ordinary backend environment. |
+| Frontend lint/type/component/build | PASS: 15 tests in 7 files; production build PASS. Existing 809.04 kB lazy Three chunk warning remains. |
+| Native desktop/mobile browser journeys | PASS after installing the matching Playwright Chromium: 6/6 in 40.9 s. Commerce, seller/admin, mock 3D review/approval and customer viewer journeys ran against local SQLite/files/inline mode. This is not PostgreSQL/RQ/MinIO evidence. |
+| Local container integration | BLOCKED: Docker CLI 29.9.2 is present, but its config is access-denied, the `docker_engine` pipe is absent and this CLI has no Compose plugin. Existing GitHub Linux Compose evidence remains historical, not relabeled as this branch's local execution. |
+| GitHub Actions, PR #5 run `42391764271` | PASS on commit `04d5d8b`: backend 1m34s, frontend 42s, Compose smoke 4m46s. The Linux Compose job is current-branch PostgreSQL/Redis/RQ/MinIO/browser evidence, but is not relabeled as a local Windows or second-physical-PC run. |
+
+TripoSR checkpoint SHA-256 is
+`429E2C6B22A0923967459DE24D67F05962B235F79CDE6B032AA7ED2FFCD970EE`.
+Inference ran with network access disabled and local model/config paths. The CPU profile does not
+claim practical TripoSR inference. Peak value is PyTorch CUDA allocation, not whole-process RAM.
+
+## Remaining-features branch — current host evidence
+
+Worktree: `D:\PROJECTS\Ayna-complete`, branch `feat/complete-remaining-features`, based on
+primary `main` `bf9e16c`. No paid-provider key, request or credit was used.
+
+| Exact command | Result |
+| --- | --- |
+| `python -m pytest -q --basetemp ..\.pytest-full` (backend) | PASS: **91 passed, 1 skipped**, 77.14 s. Skip is the optional OpenCV test in the CPU environment. |
+| Vision environment `pytest tests/test_opencv_alignment.py -q` with backend packages on `PYTHONPATH` | PASS: **2 passed**, real OpenCV/NumPy, 3.20 s. |
+| `python -m ruff check .` / `python -m ruff format --check .` / `python -m mypy app` | PASS; 73 files formatted, 45 app files type-checked. |
+| `python -m alembic heads` / `upgrade head` / `check` | PASS; single `24df91a0bc72` head, no new operations. |
+| `python -m scripts.export_openapi` then `npm run types:api` | PASS; OpenAPI and TypeScript generated sequentially. |
+| `npm run lint` / `npm run typecheck` / `npm test -- --run` | PASS; **15 tests in 7 files**. |
+| `npm run build` | PASS; main 353.22 kB raw/102.94 kB gzip, ModelViewer 182.21/58.01, Three viewer 809.04/204.70. Existing large lazy Three chunk warning remains. |
+| Tripo/Meshy/Blender/recovery focused backend tests | PASS within the 91-test suite; provider HTTP and Blender subprocess are simulated, not live acceptance. |
+| `docker version` | BLOCKED: CLI 29.9.2 exists, Docker config is access-denied and `docker_engine` pipe is absent. |
+| `docker compose config --quiet` | BLOCKED: this CLI has no Compose plugin (`unknown flag: --quiet`). |
+| `wsl --status` | BLOCKED: WSL is not installed. No volumes or data were deleted. |
+| `blender --version` | BLOCKED: Blender is not installed or on PATH. |
+
+`nvidia-smi` reports an NVIDIA GeForce RTX 4050 Laptop GPU, driver 616.92, 6,141 MiB
+VRAM and 4,597 MiB free immediately before the final measurements. The OS API did not
+return a reliable RAM total, so the previously stated 16 GB was not relabeled as a new
+measurement.
+
+Real official local-weight inference, weights outside Git:
+
+| Exact command scope | Result |
+| --- | --- |
+| `vision_inference_smoke.py --model sam2 ... --device auto` | PASS on CUDA: SAM 2.1 Hiera Tiny, 6.905 s, 597.84 MiB peak, 102,296 mask pixels. |
+| `vision_inference_smoke.py --model dinov2 ... --device auto` | PASS on CUDA: DINOv2 Small, 29.057 s, 104.30 MiB peak, identical-image cosine 0.99999994. This is advisory sanity only, not identity or fidelity. |
+
+SAM checkpoint SHA-256 is
+`7402E0D864FA82708A20FBD15BC84245C2F26DFF0EB43A4B5B93452DEB34BE69`;
+DINO safetensors SHA-256 is
+`AE1E99FCEFD534ED978CDEB8326F08030C96E28B7A81FFCBC98A857C84D14BE1`,
+Hugging Face revision `ed25f3a31f01632728cabb09d1542f84ab7b0056`. Both projects declare
+Apache-2.0. Model weights, customer photos and credentials are untracked.
+
+Not executed on this branch: paid Meshy/Tripo requests or visual fidelity comparison,
+real Blender/bpy optimization, a real try-on model/provider, local Windows Docker execution,
+real Stripe/SMTP/carrier services, or a second physical PC. Reasons are respectively absent
+spending authorization/keys, missing Blender, no approved try-on model, missing local
+WSL/daemon/Compose plugin, and absent external infrastructure.
+
+GitHub Actions run `42298719303` on commit `73840bb` supplied current Linux container
+evidence: backend PASS (1m34s), frontend PASS (42s), and Compose smoke PASS (4m23s).
+The Compose job executed config validation, full build/wait, migrations/startup,
+PostgreSQL/Redis/RQ/MinIO mock generation/publication/revocation smoke, commerce smoke and
+Playwright desktop/mobile journeys, then retained browser artifacts and stopped containers.
+This is exact-branch CI evidence, not a second physical-PC claim. The local Windows Docker
+blocker remains accurately recorded above.
 
 Run in `E:\Ayna-integration` on Windows 11, Python 3.12.6, Node 22 and Chromium.
 This is one host plus independently executed GitHub Linux CI, not two physical laptop
@@ -96,7 +172,7 @@ not establish paid API availability or the appearance/fidelity of a real Meshy r
   cart refresh completed, then the delayed login redirect replaced the seller page. Moved
   the cart refresh before publishing signed-in navigation and added a deferred-cart UI test.
 
-## GPU and other unavailable tests
+## Historical integration-host GPU and other unavailable tests
 
 | Executed command | Actual result |
 | --- | --- |

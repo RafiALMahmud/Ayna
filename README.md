@@ -2,7 +2,8 @@
 
 A regular multi-category e-commerce platform with optional 3D product previews.
 React, TypeScript, Tailwind, FastAPI, SQLAlchemy/Alembic, PostgreSQL, Redis/RQ,
-and private MinIO storage. Local mock AI needs no GPU or paid API keys.
+and private MinIO storage. Local mock AI needs no GPU or paid API keys; an optional pinned
+TripoSR GPU profile performs real single-image local reconstruction without a cloud API.
 
 ## Shop functionality
 
@@ -18,15 +19,45 @@ and private MinIO storage. Local mock AI needs no GPU or paid API keys.
 - Optional Stripe hosted checkout/webhooks/refunds and SMTP password recovery adapters.
 
 Products can be sold without generating a 3D model. The separate product studio retains
-its reviewed, explicitly labeled **dummy GLB** workflow. Hosted reconstruction has an
-explicitly enabled Meshy adapter, tested with simulated HTTP responses but not a paid
-live task. Photorealistic accuracy is unverified. Clothing/shoe try-on remains
-unimplemented; the mock provider never reconstructs the uploaded product.
+its reviewed, explicitly labeled **dummy GLB** workflow. Hosted reconstruction has explicit
+Meshy and Tripo adapters, tested with simulated HTTP responses but not paid live tasks.
+Photorealistic accuracy is unverified. Shirts, pants and shoes have a private diagnostic
+workflow for consent, framing, job state, retention and deletion. An optional local FASHN backend
+generates real clothing-preview pixels for shirts and pants, but is demo/evaluation-only because
+its parser dependency is noncommercial. Shoes return a precise unsupported error. The mock
+provider never reconstructs the uploaded product.
 
 Integration audit and operating instructions:
 [feature checklist](AYNA_FEATURE_CHECKLIST.md), [integration report](AYNA_INTEGRATION_REPORT.md),
 [executed test report](AYNA_TEST_REPORT.md), [both-PC instructions](AYNA_BOTH_PC_TESTING.md).
 The integrated branch preserves the regular shop and Developer 2's quality/viewer work.
+
+## Optional AI, 3D and try-on boundaries
+
+Meshy or Tripo requires explicit provider selection, a server-side key, a positive daily cap
+and RQ. Ayna never switches paid providers automatically. Known provider task IDs can resume
+polling after worker failure; ambiguous paid submissions fail rather than being resubmitted.
+Run `python -m scripts.reconcile_generation` for an explicit recovery sweep.
+
+OpenCV alignment, SAM 2, DINOv2 and Blender are opt-in. SAM/DINO accept only explicit local
+paths and never download weights. Blender runs in an isolated subprocess and publishes an
+optimized GLB only after size, geometry, material/UV and rendered-appearance gates; otherwise
+the original is retained. Keep weights outside Git. See
+[quality implementation](docs/DEV2_QUALITY_STOREFRONT.md) and
+[test results](AYNA_TEST_REPORT.md) for installation, provenance and measured evidence.
+
+Try-on defaults to `TRYON_PROVIDER=diagnostic` and `TRYON_RETENTION_HOURS=24`. Customer photos
+are metadata-stripped, private, owner-only and immediately deletable; expired assets are purged
+by workers. Set the provider to `disabled` to disable uploads. Diagnostic mode checks basic
+dimensions and framing only; pose, feet/body visibility and occlusion remain `not_evaluated`,
+and the UI never presents it as sizing or physical-fit evidence. See the
+[private diagnostic contract](docs/TRYON_DIAGNOSTIC.md).
+
+See the [model/license inventory](docs/MODEL_LICENSE_INVENTORY.md) for exact revisions, explicit
+downloads and license findings. `local_triposr` consumes only the seller's front/first photo even
+though Ayna preserves the 2–5-photo review workflow. FASHN VTON is optional demo/evaluation code,
+not a commercially approved path, because its required human parser is noncommercial. No suitable
+local permissive shoe try-on model has been verified; Ayna fails that request clearly.
 
 ## Run locally on Windows
 
@@ -67,6 +98,31 @@ It adds eight photographed products and `WELCOME10` (10% off, minimum BDT 1,000)
 It does not replenish stock or reset existing passwords when rerun. The development
 payment simulator is labeled in the UI; COD does not require payment credentials.
 Browser tests create additional labeled fixtures and orders in the local database.
+
+## Reproducible demo walkthrough
+
+1. Start the ordinary shop with the Windows helper above. Sign in as the sample customer to
+   browse, add inventory to the bag and complete BDT cash-on-delivery checkout.
+2. For the free real-GPU profile, first complete the explicit downloads in the
+   [model/license inventory](docs/MODEL_LICENSE_INVENTORY.md). Put the documented
+   `AI_PROVIDER=local_triposr` and `LOCAL_TRIPOSR_*` values in the ignored `.env`; for generated
+   clothing previews also set `TRYON_PROVIDER=fashn_vton`, the three `TRYON_*` paths and the
+   required demo-only license acknowledgement. Use the Docker/RQ launch below. The native helper
+   intentionally forces safe mock/diagnostic mode.
+3. As the seller, create a product with 2–5 labeled photographs, placing the front view first.
+   Start generation, monitor progress, and cancel if needed. Local TripoSR consumes only that
+   first/front image; every uploaded view remains private comparison evidence.
+4. Inspect the generated model beside the original photos. Reject inaccurate geometry, or approve
+   only a satisfactory current successful result. Only that approval exposes the model in the
+   customer viewer; mock GLBs remain visibly labeled as dummy output.
+5. On a shirt or pants product, sign in as the customer, select the required framing, consent,
+   upload a test body photo you are authorized to use, and request try-on. FASHN results are
+   labeled generated appearance previews. Shoes fail as unsupported. Use **Delete private try-on**
+   to remove the source and result immediately; otherwise recurring worker cleanup enforces expiry.
+
+The measured TripoSR examples failed human geometry review, and FASHN's parser license is
+noncommercial. This walkthrough demonstrates the implemented boundaries; it is not approval to
+sell either an inaccurate reconstruction or the restricted try-on stack.
 
 ## Docker / PostgreSQL
 

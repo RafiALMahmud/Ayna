@@ -1,0 +1,12 @@
+# Install PyTorch separately from the official CUDA index documented in MODEL_LICENSE_INVENTORY.md.
+omegaconf==2.3.0
+Pillow==10.1.0
+einops==0.7.0
+transformers==4.38.2
+tokenizers==0.15.2
+numpy==2.5.4
+trimesh==4.10.0
+huggingface-hub==0.36.2
+imageio==2.38.1
+scikit-image==0.26.0
+opencv-python-headless==5.0.0.93

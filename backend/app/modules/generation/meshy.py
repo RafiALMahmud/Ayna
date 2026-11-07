@@ -83,7 +83,9 @@ class MeshyProvider:
         self.storage = storage or get_storage()
         self.submitted, self.progress, self.sleep = submitted, progress, sleep
 
-    def generate(self, image_keys: list[str]) -> GenerationResult:
+    def generate(
+        self, image_keys: list[str], *, existing_task_id: str | None = None
+    ) -> GenerationResult:
         settings = self.settings
         if (
             settings.ai_provider != "meshy"
@@ -91,27 +93,37 @@ class MeshyProvider:
             or settings.meshy_daily_request_limit < 1
         ):
             raise ProviderError("PROVIDER_NOT_CONFIGURED")
-        if not 2 <= len(image_keys) <= 4:
+        if existing_task_id is None and not 2 <= len(image_keys) <= 4:
             raise ProviderError("INVALID_PROVIDER_INPUT")
-        images = [
-            "data:image/png;base64," + base64.b64encode(self.storage.get(key)).decode("ascii")
-            for key in image_keys
-        ]
+        images = (
+            [
+                "data:image/png;base64," + base64.b64encode(self.storage.get(key)).decode("ascii")
+                for key in image_keys
+            ]
+            if existing_task_id is None
+            else []
+        )
         owned = self.client is None
         client = self.client or httpx.Client(timeout=30, follow_redirects=False, trust_env=False)
         headers = {"Authorization": f"Bearer {settings.meshy_api_key}"}
         try:
-            # Submission is deliberately never retried: an ambiguous timeout may be billable.
-            response = client.post(
-                API,
-                headers=headers,
-                json={"image_urls": images, "ai_model": "meshy-7.1", "target_formats": ["glb"]},
-            )
-            response.raise_for_status()
-            task_id = response.json().get("result")
-            if not isinstance(task_id, str) or not task_id or len(task_id) > 200:
-                raise ProviderError("INVALID_PROVIDER_RESPONSE")
-            self.submitted(task_id)
+            task_id = existing_task_id
+            if task_id is None:
+                # Submission is deliberately never retried: an ambiguous timeout may be billable.
+                response = client.post(
+                    API,
+                    headers=headers,
+                    json={
+                        "image_urls": images,
+                        "ai_model": "meshy-7.1",
+                        "target_formats": ["glb"],
+                    },
+                )
+                response.raise_for_status()
+                task_id = response.json().get("result")
+                if not isinstance(task_id, str) or not task_id or len(task_id) > 200:
+                    raise ProviderError("INVALID_PROVIDER_RESPONSE")
+                self.submitted(task_id)
             deadline = time.monotonic() + settings.meshy_timeout_seconds
             attempts = settings.meshy_timeout_seconds // settings.meshy_poll_seconds + 1
             for _ in range(attempts):
@@ -135,8 +147,8 @@ class MeshyProvider:
                             "provider": "meshy",
                             "provider_task_id": task_id,
                             "ai_model": "meshy-7.1",
-                            "source_image_count": len(images),
-                            "request_count": 1,
+                            "source_image_count": len(image_keys),
+                            "request_count": 0 if existing_task_id else 1,
                             "fidelity_evaluated": False,
                         },
                     )
