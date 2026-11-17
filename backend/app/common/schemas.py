@@ -32,7 +32,7 @@ class QualityStatus(StrEnum):
 
 class ProductCreate(BaseModel):
     name: str = Field(min_length=1, max_length=160, pattern=r".*\S.*")
-    category: str = Field(pattern="^(shoes|bags|shirts|pants)$")
+    category: str = Field(pattern="^(shoes|bags|shirts|pants|dresses)$")
     description: str = Field(default="", max_length=3000)
 
 

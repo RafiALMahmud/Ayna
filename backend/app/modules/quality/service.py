@@ -3,6 +3,7 @@ from dataclasses import dataclass
 from app.common.config import get_settings
 from app.common.models import GenerationJob, Product, QualityReport
 from app.modules.quality.analysis import AnalysisResult, analyze_aligned_views
+from app.modules.quality.opencv_alignment import align_with_opencv
 from app.modules.quality.optional_models import optional_quality_runtime
 from app.modules.quality.rendering import (
     BatchRenderer,
@@ -96,6 +97,9 @@ def build_quality_artifacts(
         rendered_views or {},
         settings.quality_max_image_size,
         optional_runtime=optional_quality_runtime(settings),
+        alignment_verifier=(
+            align_with_opencv if settings.quality_enable_opencv_alignment else None
+        ),
     )
     metadata = batch.metadata if batch else {}
     if batch:

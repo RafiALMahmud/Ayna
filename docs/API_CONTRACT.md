@@ -8,6 +8,10 @@ Purpose: copy this file to `docs/API_CONTRACT.md` during the bootstrap stage. **
 - `ProductImage`: `id`, `product_id`, `storage_key`, `view_tag`, `sort_order` (never make private object keys or original user photos public by default).
 - `GenerationJob`: `id`, `product_id`, `provider`, `status`, `progress`, `created_at`, `finished_at`, `error_code`, `model_asset_url`, `preview_asset_urls[]`. Status: `queued|processing|succeeded|failed|cancelled`. Treat `model_asset_url` as nullable until the model is ready; never expose private URLs to unauthorized clients.
 - `QualityReport`: `product_id`, `job_id`, `status`, `metrics`, `notes`, `uncertain_views[]`, `reviewed_by`, `reviewed_at`. Status: `pending|pass|needs_review|failed|not_evaluated`. Missing camera alignment -> do not invent numerical fidelity scores.
+- `TryOnJob`: private `id`, `user_id`, `product_id`, `provider`, `framing`, consent/retention
+  timestamps, status/progress/diagnostics and nullable private source/result keys. Status:
+  `queued|processing|needs_review|succeeded|failed|deleted`. Keys and customer photos are
+  never public response fields.
 
 ## API prefix: `/api/v1`
 
@@ -19,6 +23,11 @@ Purpose: copy this file to `docs/API_CONTRACT.md` during the bootstrap stage. **
 - `POST /products/{id}/review`: approve/reject with notes, authorized owner only.
 - `GET /store/products`, `GET /store/products/{id}`: approved products only; original photos + approved model metadata.
 - `GET /health`, `GET /ready`: health endpoints.
+- `POST /try-on/products/{id}/jobs`: authenticated consented multipart diagnostic for
+  eligible shirts/pants/shoes; idempotent and asynchronous.
+- `GET /try-on/jobs/{id}`, `DELETE /try-on/jobs/{id}`: owner-only status and deletion.
+- `GET /try-on/jobs/{id}/result`: owner-only result bytes when a real configured pathway
+  succeeds; diagnostic mode intentionally has no result.
 
 ## Collaboration and privacy contract
 

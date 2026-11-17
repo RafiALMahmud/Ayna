@@ -1,9 +1,9 @@
 """Deterministic CPU-only GLB inspection renderer.
 
 This is deliberately a small software rasterizer, not a photorealistic renderer. It supports
-embedded GLB 2.0 triangle meshes, node transforms and material base colors. Textures, skins,
-animations, morph targets and compressed mesh extensions are not evaluated. The output is
-useful only as a consistently labelled input to Ayna's advisory, aligned-view quality checks.
+embedded GLB 2.0 triangle meshes, node transforms, material base colors and embedded base-color
+textures. Skins, animations, morph targets and compressed mesh extensions are not evaluated.
+The output is useful only as a consistently labelled input to Ayna's advisory checks.
 """
 
 from __future__ import annotations
@@ -239,6 +239,44 @@ def _material_color(document: dict, primitive: dict) -> tuple[int, int, int]:
         return (166, 166, 166)
 
 
+def _embedded_texture(document: dict, binary: bytes, primitive: dict) -> Image.Image | None:
+    """Load an embedded base-color texture; external URIs stay explicitly unsupported."""
+    material_index = primitive.get("material")
+    if material_index is None:
+        return None
+    try:
+        material = document.get("materials", [])[material_index]
+        texture_info = material.get("pbrMetallicRoughness", {}).get("baseColorTexture")
+        if texture_info is None:
+            return None
+        texture_index = texture_info["index"]
+        image_index = document["textures"][texture_index]["source"]
+        image = document["images"][image_index]
+        if "bufferView" not in image:
+            raise GlbRenderError("External texture URIs are not supported for inspection")
+        view = document["bufferViews"][image["bufferView"]]
+        if view.get("buffer", 0) != 0:
+            raise GlbRenderError("Texture references a non-embedded buffer")
+        start = int(view.get("byteOffset", 0))
+        end = start + int(view["byteLength"])
+        if start < 0 or end > len(binary):
+            raise GlbRenderError("Embedded texture exceeds its binary buffer")
+        with Image.open(io.BytesIO(binary[start:end])) as decoded:
+            return decoded.convert("RGB")
+    except (IndexError, KeyError, TypeError, ValueError) as exc:
+        if isinstance(exc, GlbRenderError):
+            raise
+        raise GlbRenderError("Embedded base-color texture metadata is invalid") from exc
+
+
+def _texture_color(texture: Image.Image, uv: tuple[float, float]) -> tuple[int, int, int]:
+    u, v = uv[0] % 1.0, uv[1] % 1.0
+    x = min(texture.width - 1, max(0, round(u * (texture.width - 1))))
+    y = min(texture.height - 1, max(0, round((1.0 - v) * (texture.height - 1))))
+    pixel = texture.getpixel((x, y))
+    return int(pixel[0]), int(pixel[1]), int(pixel[2])
+
+
 def _mesh_instances(document: dict) -> Iterable[tuple[int, tuple[float, ...]]]:
     nodes = document.get("nodes", [])
     scenes = document.get("scenes", [])
@@ -306,6 +344,23 @@ def load_render_mesh(data: bytes, max_triangles: int = 20_000) -> RenderMesh:
             if len(indices) % 3:
                 raise GlbRenderError("Triangle index count must be divisible by three")
             color = _material_color(document, primitive)
+            texture = _embedded_texture(document, binary, primitive)
+            texcoords = None
+            vertex_colors = None
+            if texture is not None:
+                texture_accessor = primitive.get("attributes", {}).get("TEXCOORD_0")
+                if texture_accessor is None:
+                    raise GlbRenderError("A base-color texture has no TEXCOORD_0 accessor")
+                texcoords = _accessor(document, binary, int(texture_accessor))
+                if len(texcoords) != len(positions) or any(len(uv) != 2 for uv in texcoords):
+                    raise GlbRenderError("Texture coordinates do not match mesh positions")
+            color_accessor = primitive.get("attributes", {}).get("COLOR_0")
+            if color_accessor is not None:
+                vertex_colors = _accessor(document, binary, int(color_accessor))
+                if len(vertex_colors) != len(positions) or any(
+                    len(value) not in {3, 4} for value in vertex_colors
+                ):
+                    raise GlbRenderError("Vertex colors do not match mesh positions")
             for offset in range(0, len(indices), 3):
                 try:
                     triangle_points = tuple(
@@ -315,7 +370,34 @@ def load_render_mesh(data: bytes, max_triangles: int = 20_000) -> RenderMesh:
                     raise GlbRenderError("Triangle index is outside the POSITION accessor") from exc
                 if len(set(triangle_points)) < 3:
                     continue
-                triangles.append(Triangle(triangle_points, color))
+                triangle_color = color
+                if texture is not None and texcoords is not None:
+                    uv_points = [texcoords[index] for index in indices[offset : offset + 3]]
+                    sampled = _texture_color(
+                        texture,
+                        (
+                            sum(float(uv[0]) for uv in uv_points) / 3,
+                            sum(float(uv[1]) for uv in uv_points) / 3,
+                        ),
+                    )
+                    triangle_color = (
+                        round(sampled[0] * color[0] / 255),
+                        round(sampled[1] * color[1] / 255),
+                        round(sampled[2] * color[2] / 255),
+                    )
+                elif vertex_colors is not None:
+                    color_points = [vertex_colors[index] for index in indices[offset : offset + 3]]
+                    channels = [
+                        sum(float(value[channel]) for value in color_points) / 3
+                        for channel in range(3)
+                    ]
+                    scale = 255 if max(channels) <= 1.0 else 1
+                    triangle_color = (
+                        max(0, min(255, round(channels[0] * scale))),
+                        max(0, min(255, round(channels[1] * scale))),
+                        max(0, min(255, round(channels[2] * scale))),
+                    )
+                triangles.append(Triangle(triangle_points, triangle_color))
                 points.extend(triangle_points)
                 if len(triangles) > max_triangles:
                     raise GlbRenderError(f"GLB exceeds the {max_triangles:,} triangle CPU limit")
@@ -454,7 +536,7 @@ def render_glb_views(
         raise GlbRenderError(f"No deterministic GLB views could be rendered ({details})")
     metadata = {
         "status": "partial" if failures else "complete",
-        "renderer": "ayna-cpu-raster-v1",
+        "renderer": "ayna-cpu-raster-v2",
         "deterministic": True,
         "image_size": image_size,
         "triangle_count": len(mesh.triangles),
@@ -462,8 +544,9 @@ def render_glb_views(
         "views": view_metadata,
         "failed_views": failures,
         "limitations": [
-            "base-color rendering only",
-            "textures, skins, animation and compressed meshes are not evaluated",
+            "embedded base-color textures are sampled once per triangle for inspection",
+            "vertex colors are averaged once per triangle for inspection",
+            "metallic/roughness maps, skins, animation and compressed meshes are not evaluated",
         ],
     }
     return RenderBatch(images=images, metadata=metadata, failures=failures)

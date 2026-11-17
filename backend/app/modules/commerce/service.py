@@ -40,6 +40,7 @@ DEFAULT_CATEGORIES = {
     "bags": "Bags",
     "shoes": "Shoes",
     "shirts": "Clothing",
+    "dresses": "Women's dresses",
     "pants": "Trousers",
     "electronics": "Electronics",
     "home": "Home & living",
@@ -91,6 +92,8 @@ def store_config(db) -> StoreConfig:
         categories=[CategorySummary.model_validate(c) for c in category_data],
         payment_methods=methods,
         demo_mode=settings.environment != "production",
+        tryon_provider=settings.tryon_provider,
+        tryon_retention_hours=settings.tryon_retention_hours,
     )
 
 
@@ -111,6 +114,7 @@ def listed(db, product_id: str, lock=False) -> Product:
 
 
 def product_view(db, product: Product, private=False) -> ShopProduct:
+    settings = get_settings()
     all_variants = db.scalars(
         select(Variant).where(Variant.product_id == product.id).order_by(Variant.label)
     ).all()
@@ -141,7 +145,7 @@ def product_view(db, product: Product, private=False) -> ShopProduct:
         price_minor=product.price_minor,
         compare_at_minor=product.compare_at_minor,
         stock=sum(v.stock for v in active_variants) if all_variants else product.stock,
-        currency=get_settings().currency,
+        currency=settings.currency,
         images=[
             ShopImage(
                 id=i.id,
@@ -161,7 +165,12 @@ def product_view(db, product: Product, private=False) -> ShopProduct:
         featured=product.featured,
         model_asset_url=model_url,
         model_disclosure=disclosure(job.provider) if model_url and job else None,
-        try_on_eligible=product.category in {"shirts", "pants", "shoes"},
+        try_on_eligible=product.category
+        in (
+            {"shirts", "pants", "dresses"}
+            if settings.tryon_provider == "fashn_vton"
+            else {"shirts", "pants", "dresses", "shoes"}
+        ),
     )
 
 

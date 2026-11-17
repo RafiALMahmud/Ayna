@@ -4,11 +4,13 @@ The engine deliberately refuses to compare differently labelled or unknown camer
 It is not an identity verifier and its signals must remain advisory to the seller.
 """
 
+from collections.abc import Callable
 from dataclasses import dataclass
 from io import BytesIO
 
 from PIL import Image, ImageOps, UnidentifiedImageError
 
+from app.modules.quality.opencv_alignment import AlignmentResult
 from app.modules.quality.optional_models import MaskPairRefiner, OptionalQualityRuntime
 
 KNOWN_VIEWS = ("front", "left", "right", "side", "back")
@@ -124,8 +126,9 @@ def analyze_aligned_views(
     renders: dict[str, bytes],
     max_image_size: int = 384,
     optional_runtime: OptionalQualityRuntime | None = None,
+    alignment_verifier: Callable[[bytes, bytes, int], AlignmentResult] | None = None,
 ) -> AnalysisResult:
-    """Compare exact known-view matches only; unknown alignment yields no numeric scores."""
+    """Compare only views with explicit pixel identity or verified camera alignment."""
     matched = sorted(set(references) & set(renders) & set(KNOWN_VIEWS))
     uncertain = sorted(
         {view for view in references if view not in matched}
@@ -142,9 +145,10 @@ def analyze_aligned_views(
             uncertain_views=uncertain or ["all views - camera alignment unavailable"],
         )
 
-    view_metrics: dict[str, dict[str, float | bool]] = {}
+    view_metrics: dict[str, dict] = {}
     flags: list[str] = []
     invalid: list[str] = []
+    rejected_alignment: list[str] = []
     sam2_applied: list[str] = []
     sam2_failed: dict[str, str] = {}
     sam2_devices: set[str] = set()
@@ -153,10 +157,34 @@ def analyze_aligned_views(
     dinov2_devices: set[str] = set()
     size = max(128, min(max_image_size, 1024))
     for view in matched:
+        reference, render = references[view], renders[view]
+        if reference == render:
+            alignment = AlignmentResult(
+                True,
+                render,
+                {"method": "byte-identical", "accepted": True, "reason": "identical_input"},
+                {},
+            )
+        elif alignment_verifier is None:
+            rejected_alignment.append(f"{view} - camera alignment not established")
+            continue
+        else:
+            try:
+                alignment = alignment_verifier(reference, render, min(size, 512))
+            except Exception as exc:
+                rejected_alignment.append(
+                    f"{view} - alignment unavailable ({exc.__class__.__name__})"
+                )
+                continue
+        if not alignment.accepted or alignment.aligned_render is None:
+            reason = alignment.diagnostics.get("reason", "ambiguous_camera_alignment")
+            rejected_alignment.append(f"{view} - {reason}")
+            continue
+        aligned_render = alignment.aligned_render
         try:
             signals, sam2_device, sam2_error = _signals(
-                references[view],
-                renders[view],
+                reference,
+                aligned_render,
                 size,
                 optional_runtime.sam2_refiner if optional_runtime else None,
             )
@@ -169,8 +197,16 @@ def analyze_aligned_views(
             flags.append(f"{view}: likely color mismatch")
         if signals["pixel_difference"] > 0.35:
             flags.append(f"{view}: possible texture/logo/detail mismatch")
+        if alignment.metrics.get("opencv_texture_gradient_difference", 0) > 0.3:
+            flags.append(f"{view}: localized texture/detail regions need inspection")
+        if alignment.metrics.get("opencv_lighting_normalized_chroma_distance", 0) > 0.18:
+            flags.append(f"{view}: lighting-normalized color mismatch")
 
-        values: dict[str, float | bool] = dict(signals)
+        values: dict = {
+            **signals,
+            **alignment.metrics,
+            "alignment": alignment.diagnostics,
+        }
         if optional_runtime and optional_runtime.sam2_refiner:
             values["sam2_mask_refined"] = sam2_error is None
             if sam2_error is None and sam2_device:
@@ -181,9 +217,7 @@ def analyze_aligned_views(
 
         if optional_runtime and optional_runtime.dinov2_scorer:
             try:
-                similarity, device = optional_runtime.dinov2_scorer(
-                    references[view], renders[view], size
-                )
+                similarity, device = optional_runtime.dinov2_scorer(reference, aligned_render, size)
                 if not -1.0 <= similarity <= 1.0:
                     raise ValueError("DINOv2 cosine similarity is outside its valid range")
                 values["dinov2_cosine_similarity"] = round(similarity, 4)
@@ -194,7 +228,18 @@ def analyze_aligned_views(
         view_metrics[view] = values
 
     uncertain.extend(f"{view} - unreadable comparison image" for view in invalid)
+    uncertain.extend(rejected_alignment)
     if not view_metrics:
+        if rejected_alignment:
+            return AnalysisResult(
+                status="not_evaluated",
+                metrics={},
+                notes=(
+                    "Matching direction labels did not establish camera alignment; "
+                    "no numerical fidelity measurement was produced."
+                ),
+                uncertain_views=sorted(set(uncertain)),
+            )
         return AnalysisResult(
             status="failed",
             metrics={},
@@ -203,7 +248,7 @@ def analyze_aligned_views(
         )
     status = "pass" if not flags and not uncertain else "needs_review"
     metrics: dict = {
-        "engine": "cpu-interpretable-v1",
+        "engine": "aligned-interpretable-v2",
         "aligned_views": list(view_metrics),
         "views": view_metrics,
         "flags": flags,
@@ -228,7 +273,9 @@ def analyze_aligned_views(
             optional_metrics["dinov2"] = dinov2_summary
         metrics["optional_models"] = optional_metrics
     notes = (
-        "Advisory aligned-view checks only; they cannot certify product identity or unseen details."
+        "Advisory checks run only after alignment evidence; they cannot certify product identity "
+        "or unseen details. Localized regions indicate where a human should inspect logos/text, "
+        "not that those details were recognized."
     )
     if optional_runtime and optional_runtime.dinov2_scorer:
         notes += " DINOv2 similarity is an advisory correspondence signal, not identity proof."

@@ -27,6 +27,7 @@ import {
 import type { Cart, ProductPage, Review, ShopProduct } from './shared'
 import { RecentlyViewed } from './Discovery'
 import { rememberProduct } from './discovery-state'
+import { TryOnPanel } from './TryOnPanel'
 const ModelViewer = lazy(() => import('../../shared/ModelViewer'))
 
 export function HomePage() {
@@ -154,6 +155,7 @@ export function HomePage() {
         <div className="shop-editorial-categories">
           {[
             ['shirts', 'Your everyday uniform'],
+            ['dresses', 'A dress for every day'],
             ['home', 'Make room for good things'],
             ['electronics', 'Small upgrades, big possibilities'],
           ].map(([category, text]) => (
@@ -531,6 +533,7 @@ export function ProductDetail({ id }: { id: string }) {
             </span>
           </div>
           <p className="shop-small shop-muted">SKU: {selected?.sku || p.sku || '—'}</p>
+          <TryOnPanel product={p} />
         </div>
       </div>
       <section className="shop-reviews" id="product-reviews">

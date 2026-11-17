@@ -1,0 +1,14 @@
+# Install torch/torchvision separately from the official CUDA index, then install the
+# exact FASHN source revision with --no-deps. These are the versions used for the
+# measured Windows/RTX 4050 acceptance in docs/MODEL_LICENSE_INVENTORY.md.
+fashn-human-parser==0.1.1
+einops==0.8.2
+huggingface-hub==2.4.0
+numpy==2.5.4
+onnxruntime-gpu==1.31.1
+opencv-python==5.0.0.93
+Pillow==13.0.0
+safetensors==0.8.0
+tokenizers==0.23.3
+transformers==5.22.2
+

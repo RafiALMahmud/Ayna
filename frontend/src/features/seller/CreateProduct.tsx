@@ -121,6 +121,7 @@ export function CreateProduct({
               <option value="bags">Bags</option>
               <option value="shoes">Shoes</option>
               <option value="shirts">Shirts · experimental</option>
+              <option value="dresses">Dresses · experimental</option>
               <option value="pants">Pants · experimental</option>
             </select>
           </label>

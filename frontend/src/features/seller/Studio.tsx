@@ -102,6 +102,19 @@ export function Studio({ config }: { config: Config }) {
       setBusy(false)
     }
   }
+  async function cancelGeneration() {
+    if (!job) return
+    setBusy(true)
+    setError('')
+    try {
+      setJob(await api<Job>(`/generation-jobs/${job.id}`, { method: 'DELETE' }))
+      await refresh()
+    } catch (err) {
+      setError((err as Error).message)
+    } finally {
+      setBusy(false)
+    }
+  }
   function updated(product: Product) {
     setSelected(product)
     setProducts((all) => all.map((p) => (p.id === product.id ? product : p)))
@@ -305,11 +318,18 @@ export function Studio({ config }: { config: Config }) {
             <span className="muted small">
               {(job?.provider || config.provider) === 'mock'
                 ? 'Mock provider · No credits used'
-                : 'Meshy · Paid provider enabled'}
+                : (job?.provider || config.provider) === 'local_triposr'
+                  ? 'Local TripoSR · Front photo only · No paid API'
+                : `${(job?.provider || config.provider) === 'tripo' ? 'Tripo' : 'Meshy'} · Paid provider enabled`}
             </span>
           </div>
           {job && (job.status === 'queued' || job.status === 'processing') && (
-            <progress max="100" value={job.progress} aria-label="Generation progress" />
+            <>
+              <progress max="100" value={job.progress} aria-label="Generation progress" />
+              <button className="button secondary" disabled={busy} onClick={cancelGeneration}>
+                Cancel generation
+              </button>
+            </>
           )}
           {job?.error_code && (
             <p role="alert" className="error">
@@ -369,7 +389,9 @@ export function Studio({ config }: { config: Config }) {
                     ? 'Starting…'
                     : config.provider === 'mock'
                       ? 'Generate mock preview'
-                      : 'Generate with Meshy (uses credits)'}
+                      : config.provider === 'local_triposr'
+                        ? 'Generate locally with TripoSR (front photo)'
+                      : `Generate with ${config.provider === 'tripo' ? 'Tripo' : 'Meshy'} (uses credits)`}
                 </button>
               )}
               {job?.status === 'succeeded' && selected.publish_status !== 'draft' && (

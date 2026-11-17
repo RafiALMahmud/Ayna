@@ -57,14 +57,94 @@ PRODUCTS = [
         True,
     ),
     (
+        "mens-polo",
+        "Men's navy cotton polo",
+        "shirts",
+        219000,
+        269000,
+        24,
+        "A polished navy polo with a clean collar and breathable cotton-pique texture.",
+        True,
+    ),
+    (
+        "mens-oxford",
+        "Men's sky Oxford shirt",
+        "shirts",
+        279000,
+        329000,
+        20,
+        "A crisp sky-blue Oxford shirt for workdays, dinners and easy layered looks.",
+        True,
+    ),
+    (
+        "mens-panjabi",
+        "Men's forest green panjabi",
+        "shirts",
+        329000,
+        389000,
+        18,
+        "A simple forest-green cotton-linen panjabi with a band collar and relaxed silhouette.",
+        True,
+    ),
+    (
+        "mens-henley",
+        "Men's terracotta henley",
+        "shirts",
+        239000,
+        289000,
+        22,
+        "A soft long-sleeve henley in warm terracotta with an understated button placket.",
+        True,
+    ),
+    (
         "dress",
         "Weekend summer dress",
-        "shirts",
+        "dresses",
         349000,
         None,
         16,
         "An airy silhouette for slow weekends and brighter days. Available in multiple sizes.",
         False,
+    ),
+    (
+        "womens-emerald-wrap",
+        "Women's emerald wrap midi dress",
+        "dresses",
+        429000,
+        499000,
+        20,
+        "A flowing emerald wrap dress with short sleeves, a defined waist and a midi hem.",
+        True,
+    ),
+    (
+        "womens-burgundy-maxi",
+        "Women's burgundy maxi dress",
+        "dresses",
+        489000,
+        559000,
+        16,
+        "An elegant long-sleeve burgundy maxi with a softly gathered waist and opaque lining.",
+        True,
+    ),
+    (
+        "womens-botanical-midi",
+        "Women's botanical cotton midi dress",
+        "dresses",
+        379000,
+        449000,
+        22,
+        "A cream cotton midi with a small blue botanical print and a gently flared skirt.",
+        True,
+    ),
+    (
+        "womens-navy-shirt-dress",
+        "Women's navy belted shirt dress",
+        "dresses",
+        459000,
+        529000,
+        18,
+        "A navy cotton-poplin shirt dress with three-quarter sleeves and a matching fabric belt.",
+        True,
     ),
     (
         "lamp",
@@ -131,7 +211,11 @@ def main():
         db.commit()
         for key, name, category, price, compare, stock, description, featured in PRODUCTS:
             sku = f"AY-DEMO-{key.upper()}"
-            if db.scalar(select(Product.id).where(Product.sku == sku)):
+            existing = db.scalar(select(Product).where(Product.sku == sku))
+            if existing:
+                if key == "dress" and existing.category != "dresses":
+                    existing.category = "dresses"
+                    db.commit()
                 continue
             product = Product(
                 id=new_id(),
@@ -150,11 +234,16 @@ def main():
             )
             db.add(product)
             db.flush()
-            raw = (root / f"{key}.jpg").read_bytes()
-            clean = sanitize_image(raw, "image/jpeg")
+            source = root / f"{key}.jpg"
+            content_type = "image/jpeg"
+            if not source.is_file():
+                source = root / f"{key}.png"
+                content_type = "image/png"
+            raw = source.read_bytes()
+            clean = sanitize_image(raw, content_type)
             image_id = new_id()
             prefix = f"products/{product.id}/{image_id}"
-            get_storage().put(f"{prefix}/original", raw, "image/jpeg")
+            get_storage().put(f"{prefix}/original", raw, content_type)
             get_storage().put(f"{prefix}/photo.png", clean, "image/png")
             product.images.append(
                 ProductImage(
@@ -165,9 +254,15 @@ def main():
                     sort_order=0,
                 )
             )
-            if category in {"shirts", "shoes"}:
+            if category in {"shirts", "dresses", "shoes"}:
                 sizes = (
-                    ["38", "39", "40", "41", "42"] if category == "shoes" else ["S", "M", "L", "XL"]
+                    ["38", "39", "40", "41", "42"]
+                    if category == "shoes"
+                    else (
+                        ["XS", "S", "M", "L", "XL"]
+                        if category == "dresses"
+                        else ["S", "M", "L", "XL"]
+                    )
                 )
                 for size in sizes:
                     db.add(

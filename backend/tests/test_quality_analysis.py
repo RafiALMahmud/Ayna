@@ -7,6 +7,7 @@ from PIL import Image, ImageDraw
 
 from app.common.config import Settings
 from app.modules.quality.analysis import analyze_aligned_views
+from app.modules.quality.opencv_alignment import AlignmentResult
 from app.modules.quality.optional_models import (
     OptionalModelUnavailable,
     OptionalQualityRuntime,
@@ -47,12 +48,33 @@ def test_aligned_identical_view_passes_interpretable_checks():
 
 
 def test_aligned_mismatch_is_flagged_for_human_review():
+    def verified(_reference, render, _size):
+        return AlignmentResult(
+            accepted=True,
+            aligned_render=render,
+            diagnostics={"method": "test-calibration", "accepted": True},
+            metrics={},
+        )
+
     result = analyze_aligned_views(
-        {"front": image("red", "box")}, {"front": image("blue", "ellipse")}, 128
+        {"front": image("red", "box")},
+        {"front": image("blue", "ellipse")},
+        128,
+        alignment_verifier=verified,
     )
     assert result.status == "needs_review"
     assert any("geometry" in flag for flag in result.metrics["flags"])
     assert any("color" in flag for flag in result.metrics["flags"])
+
+
+def test_matching_label_without_alignment_evidence_produces_no_numbers():
+    result = analyze_aligned_views(
+        {"front": image("red", "box")},
+        {"front": image("red", "ellipse")},
+    )
+    assert result.status == "not_evaluated"
+    assert result.metrics == {}
+    assert "camera alignment" in result.notes
 
 
 def test_optional_runtime_is_cpu_safe_and_retries_cuda_oom(monkeypatch):

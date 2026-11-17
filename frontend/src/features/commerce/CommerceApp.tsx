@@ -8,6 +8,7 @@ import { CartPage, CheckoutPage } from './Checkout'
 import { OrderDetail, OrdersPage } from './Orders'
 import { SellerPage } from './Seller'
 import { ComparePage } from './Discovery'
+import { ProductAssistant } from './ProductAssistant'
 import { Empty, RequireAccount, ShopProvider, go, useRoute, useShop } from './shared'
 import './commerce.css'
 
@@ -247,6 +248,7 @@ function CommerceShell() {
           <span>Cash on delivery · BDT pricing</span>
         </div>
       </footer>
+      <ProductAssistant />
     </div>
   )
 }

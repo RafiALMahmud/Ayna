@@ -36,7 +36,7 @@ def test_cpu_renderer_produces_deterministic_labelled_png_metadata():
     assert first.images == second.images
     assert first.failures == {}
     assert first.metadata["status"] == "complete"
-    assert first.metadata["renderer"] == "ayna-cpu-raster-v1"
+    assert first.metadata["renderer"] == "ayna-cpu-raster-v2"
     assert first.metadata["deterministic"] is True
     assert first.metadata["image_size"] == 128
     assert first.metadata["triangle_count"] == 8

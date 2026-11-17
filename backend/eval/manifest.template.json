@@ -1,0 +1,406 @@
+{
+  "version": 1,
+  "synthetic": false,
+  "cases": [
+    {
+      "id": "case-001",
+      "person": ".data/fixtures/person-001.png",
+      "garment": ".data/fixtures/garment-001.png",
+      "category": "tops",
+      "transition": "long-to-short",
+      "consent": false
+    },
+    {
+      "id": "case-002",
+      "person": ".data/fixtures/person-002.png",
+      "garment": ".data/fixtures/garment-002.png",
+      "category": "tops",
+      "transition": "bare-arm",
+      "consent": false
+    },
+    {
+      "id": "case-003",
+      "person": ".data/fixtures/person-003.png",
+      "garment": ".data/fixtures/garment-003.png",
+      "category": "tops",
+      "transition": "non-tee",
+      "consent": false
+    },
+    {
+      "id": "case-004",
+      "person": ".data/fixtures/person-004.png",
+      "garment": ".data/fixtures/garment-004.png",
+      "category": "tops",
+      "transition": "long-to-short",
+      "consent": false
+    },
+    {
+      "id": "case-005",
+      "person": ".data/fixtures/person-005.png",
+      "garment": ".data/fixtures/garment-005.png",
+      "category": "tops",
+      "transition": "bare-arm",
+      "consent": false
+    },
+    {
+      "id": "case-006",
+      "person": ".data/fixtures/person-006.png",
+      "garment": ".data/fixtures/garment-006.png",
+      "category": "tops",
+      "transition": "non-tee",
+      "consent": false
+    },
+    {
+      "id": "case-007",
+      "person": ".data/fixtures/person-007.png",
+      "garment": ".data/fixtures/garment-007.png",
+      "category": "tops",
+      "transition": "long-to-short",
+      "consent": false
+    },
+    {
+      "id": "case-008",
+      "person": ".data/fixtures/person-008.png",
+      "garment": ".data/fixtures/garment-008.png",
+      "category": "tops",
+      "transition": "bare-arm",
+      "consent": false
+    },
+    {
+      "id": "case-009",
+      "person": ".data/fixtures/person-009.png",
+      "garment": ".data/fixtures/garment-009.png",
+      "category": "tops",
+      "transition": "non-tee",
+      "consent": false
+    },
+    {
+      "id": "case-010",
+      "person": ".data/fixtures/person-010.png",
+      "garment": ".data/fixtures/garment-010.png",
+      "category": "tops",
+      "transition": "long-to-short",
+      "consent": false
+    },
+    {
+      "id": "case-011",
+      "person": ".data/fixtures/person-011.png",
+      "garment": ".data/fixtures/garment-011.png",
+      "category": "tops",
+      "transition": "bare-arm",
+      "consent": false
+    },
+    {
+      "id": "case-012",
+      "person": ".data/fixtures/person-012.png",
+      "garment": ".data/fixtures/garment-012.png",
+      "category": "tops",
+      "transition": "non-tee",
+      "consent": false
+    },
+    {
+      "id": "case-013",
+      "person": ".data/fixtures/person-013.png",
+      "garment": ".data/fixtures/garment-013.png",
+      "category": "tops",
+      "transition": "long-to-short",
+      "consent": false
+    },
+    {
+      "id": "case-014",
+      "person": ".data/fixtures/person-014.png",
+      "garment": ".data/fixtures/garment-014.png",
+      "category": "tops",
+      "transition": "bare-arm",
+      "consent": false
+    },
+    {
+      "id": "case-015",
+      "person": ".data/fixtures/person-015.png",
+      "garment": ".data/fixtures/garment-015.png",
+      "category": "tops",
+      "transition": "non-tee",
+      "consent": false
+    },
+    {
+      "id": "case-016",
+      "person": ".data/fixtures/person-016.png",
+      "garment": ".data/fixtures/garment-016.png",
+      "category": "tops",
+      "transition": "long-to-short",
+      "consent": false
+    },
+    {
+      "id": "case-017",
+      "person": ".data/fixtures/person-017.png",
+      "garment": ".data/fixtures/garment-017.png",
+      "category": "tops",
+      "transition": "bare-arm",
+      "consent": false
+    },
+    {
+      "id": "case-018",
+      "person": ".data/fixtures/person-018.png",
+      "garment": ".data/fixtures/garment-018.png",
+      "category": "tops",
+      "transition": "non-tee",
+      "consent": false
+    },
+    {
+      "id": "case-019",
+      "person": ".data/fixtures/person-019.png",
+      "garment": ".data/fixtures/garment-019.png",
+      "category": "tops",
+      "transition": "long-to-short",
+      "consent": false
+    },
+    {
+      "id": "case-020",
+      "person": ".data/fixtures/person-020.png",
+      "garment": ".data/fixtures/garment-020.png",
+      "category": "tops",
+      "transition": "bare-arm",
+      "consent": false
+    },
+    {
+      "id": "case-021",
+      "person": ".data/fixtures/person-021.png",
+      "garment": ".data/fixtures/garment-021.png",
+      "category": "tops",
+      "transition": "non-tee",
+      "consent": false
+    },
+    {
+      "id": "case-022",
+      "person": ".data/fixtures/person-022.png",
+      "garment": ".data/fixtures/garment-022.png",
+      "category": "tops",
+      "transition": "long-to-short",
+      "consent": false
+    },
+    {
+      "id": "case-023",
+      "person": ".data/fixtures/person-023.png",
+      "garment": ".data/fixtures/garment-023.png",
+      "category": "tops",
+      "transition": "bare-arm",
+      "consent": false
+    },
+    {
+      "id": "case-024",
+      "person": ".data/fixtures/person-024.png",
+      "garment": ".data/fixtures/garment-024.png",
+      "category": "tops",
+      "transition": "non-tee",
+      "consent": false
+    },
+    {
+      "id": "case-025",
+      "person": ".data/fixtures/person-025.png",
+      "garment": ".data/fixtures/garment-025.png",
+      "category": "tops",
+      "transition": "long-to-short",
+      "consent": false
+    },
+    {
+      "id": "case-026",
+      "person": ".data/fixtures/person-026.png",
+      "garment": ".data/fixtures/garment-026.png",
+      "category": "tops",
+      "transition": "bare-arm",
+      "consent": false
+    },
+    {
+      "id": "case-027",
+      "person": ".data/fixtures/person-027.png",
+      "garment": ".data/fixtures/garment-027.png",
+      "category": "tops",
+      "transition": "non-tee",
+      "consent": false
+    },
+    {
+      "id": "case-028",
+      "person": ".data/fixtures/person-028.png",
+      "garment": ".data/fixtures/garment-028.png",
+      "category": "tops",
+      "transition": "long-to-short",
+      "consent": false
+    },
+    {
+      "id": "case-029",
+      "person": ".data/fixtures/person-029.png",
+      "garment": ".data/fixtures/garment-029.png",
+      "category": "tops",
+      "transition": "bare-arm",
+      "consent": false
+    },
+    {
+      "id": "case-030",
+      "person": ".data/fixtures/person-030.png",
+      "garment": ".data/fixtures/garment-030.png",
+      "category": "tops",
+      "transition": "non-tee",
+      "consent": false
+    },
+    {
+      "id": "case-031",
+      "person": ".data/fixtures/person-031.png",
+      "garment": ".data/fixtures/garment-031.png",
+      "category": "tops",
+      "transition": "long-to-short",
+      "consent": false
+    },
+    {
+      "id": "case-032",
+      "person": ".data/fixtures/person-032.png",
+      "garment": ".data/fixtures/garment-032.png",
+      "category": "tops",
+      "transition": "bare-arm",
+      "consent": false
+    },
+    {
+      "id": "case-033",
+      "person": ".data/fixtures/person-033.png",
+      "garment": ".data/fixtures/garment-033.png",
+      "category": "tops",
+      "transition": "non-tee",
+      "consent": false
+    },
+    {
+      "id": "case-034",
+      "person": ".data/fixtures/person-034.png",
+      "garment": ".data/fixtures/garment-034.png",
+      "category": "tops",
+      "transition": "long-to-short",
+      "consent": false
+    },
+    {
+      "id": "case-035",
+      "person": ".data/fixtures/person-035.png",
+      "garment": ".data/fixtures/garment-035.png",
+      "category": "tops",
+      "transition": "bare-arm",
+      "consent": false
+    },
+    {
+      "id": "case-036",
+      "person": ".data/fixtures/person-036.png",
+      "garment": ".data/fixtures/garment-036.png",
+      "category": "tops",
+      "transition": "non-tee",
+      "consent": false
+    },
+    {
+      "id": "case-037",
+      "person": ".data/fixtures/person-037.png",
+      "garment": ".data/fixtures/garment-037.png",
+      "category": "tops",
+      "transition": "long-to-short",
+      "consent": false
+    },
+    {
+      "id": "case-038",
+      "person": ".data/fixtures/person-038.png",
+      "garment": ".data/fixtures/garment-038.png",
+      "category": "tops",
+      "transition": "bare-arm",
+      "consent": false
+    },
+    {
+      "id": "case-039",
+      "person": ".data/fixtures/person-039.png",
+      "garment": ".data/fixtures/garment-039.png",
+      "category": "tops",
+      "transition": "non-tee",
+      "consent": false
+    },
+    {
+      "id": "case-040",
+      "person": ".data/fixtures/person-040.png",
+      "garment": ".data/fixtures/garment-040.png",
+      "category": "tops",
+      "transition": "long-to-short",
+      "consent": false
+    },
+    {
+      "id": "case-041",
+      "person": ".data/fixtures/person-041.png",
+      "garment": ".data/fixtures/garment-041.png",
+      "category": "tops",
+      "transition": "bare-arm",
+      "consent": false
+    },
+    {
+      "id": "case-042",
+      "person": ".data/fixtures/person-042.png",
+      "garment": ".data/fixtures/garment-042.png",
+      "category": "tops",
+      "transition": "non-tee",
+      "consent": false
+    },
+    {
+      "id": "case-043",
+      "person": ".data/fixtures/person-043.png",
+      "garment": ".data/fixtures/garment-043.png",
+      "category": "tops",
+      "transition": "long-to-short",
+      "consent": false
+    },
+    {
+      "id": "case-044",
+      "person": ".data/fixtures/person-044.png",
+      "garment": ".data/fixtures/garment-044.png",
+      "category": "tops",
+      "transition": "bare-arm",
+      "consent": false
+    },
+    {
+      "id": "case-045",
+      "person": ".data/fixtures/person-045.png",
+      "garment": ".data/fixtures/garment-045.png",
+      "category": "tops",
+      "transition": "non-tee",
+      "consent": false
+    },
+    {
+      "id": "case-046",
+      "person": ".data/fixtures/person-046.png",
+      "garment": ".data/fixtures/garment-046.png",
+      "category": "tops",
+      "transition": "long-to-short",
+      "consent": false
+    },
+    {
+      "id": "case-047",
+      "person": ".data/fixtures/person-047.png",
+      "garment": ".data/fixtures/garment-047.png",
+      "category": "tops",
+      "transition": "bare-arm",
+      "consent": false
+    },
+    {
+      "id": "case-048",
+      "person": ".data/fixtures/person-048.png",
+      "garment": ".data/fixtures/garment-048.png",
+      "category": "tops",
+      "transition": "non-tee",
+      "consent": false
+    },
+    {
+      "id": "case-049",
+      "person": ".data/fixtures/person-049.png",
+      "garment": ".data/fixtures/garment-049.png",
+      "category": "tops",
+      "transition": "long-to-short",
+      "consent": false
+    },
+    {
+      "id": "case-050",
+      "person": ".data/fixtures/person-050.png",
+      "garment": ".data/fixtures/garment-050.png",
+      "category": "tops",
+      "transition": "bare-arm",
+      "consent": false
+    }
+  ]
+}

@@ -1,0 +1,12 @@
+<!doctype html><html lang="en"><meta charset="utf-8"><title>Ayna local A/B</title>
+<style>body{font:16px system-ui;max-width:1100px;margin:auto}main{display:flex;gap:16px}button{flex:1;padding:12px}img{width:100%}</style>
+<h1>Local try-on A/B vote</h1><p>Select the more realistic clothing preview. No data leaves this machine.</p>
+<input id="manifest" type="file" accept="application/json"><main id="choices"></main><button id="export">Export votes JSON</button>
+<script>
+let cases=[],index=0,votes=[]; const choices=document.querySelector('#choices');
+document.querySelector('#manifest').onchange=async e=>{cases=JSON.parse(await e.target.files[0].text()).cases; index=0; show()};
+function show(){if(index>=cases.length){choices.textContent='Complete';return} const c=cases[index], flip=Math.random()<.5;
+ const items=flip?[[c.b,'b'],[c.a,'a']]:[[c.a,'a'],[c.b,'b']]; choices.innerHTML='';
+ items.forEach(([src,label])=>{let b=document.createElement('button');b.innerHTML=`<img src="${src}" alt="candidate">`;b.onclick=()=>{votes.push({id:c.id,winner:label});index++;show()};choices.appendChild(b)})}
+document.querySelector('#export').onclick=()=>{let a=document.createElement('a');a.href=URL.createObjectURL(new Blob([JSON.stringify({votes},null,2)],{type:'application/json'}));a.download='ayna-ab-votes.json';a.click()};
+</script></html>
