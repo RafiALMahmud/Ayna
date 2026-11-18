@@ -29,8 +29,7 @@ Use Python 3.12 and Node 22.21 or newer; follow the Windows instructions below.
 Products can be sold without generating a 3D model. The separate product studio retains
 its reviewed, explicitly labeled **dummy GLB** workflow. Hosted reconstruction has an
 explicitly enabled Meshy adapter, tested with simulated HTTP responses but not a paid
-live task. Photorealistic accuracy is unverified. Clothing/shoe try-on remains
-unimplemented; the mock provider never reconstructs the uploaded product.
+live task. Photorealistic accuracy is unverified. The `main` branch does not provide clothing/shoe try-on; experimental try-on code is on `feat/local-ai-completion`. The mock provider never reconstructs the uploaded product.
 
 Integration audit and operating instructions:
 [feature checklist](AYNA_FEATURE_CHECKLIST.md), [integration report](AYNA_INTEGRATION_REPORT.md),
