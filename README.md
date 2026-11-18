@@ -1,9 +1,18 @@
 # Ayna
 
-A regular multi-category e-commerce platform with optional 3D product previews.
-React, TypeScript, Tailwind, FastAPI, SQLAlchemy/Alembic, PostgreSQL, Redis/RQ,
-and private MinIO storage. Local mock AI needs no GPU or paid API keys.
+A multi-category e-commerce platform with optional 3D product previews and local AI work. Experimental virtual try-on and additional 3D/AI workflows are documented on the [`feat/local-ai-completion` branch](https://github.com/RafiALMahmud/Ayna/tree/feat/local-ai-completion); those features are not part of `main` yet.
 
+**Stack:** React, TypeScript, Tailwind, FastAPI, SQLAlchemy/Alembic, PostgreSQL, Redis/RQ, and private MinIO storage.
+
+**Demo:** Local setup instructions are below. <!-- TODO: add an approved public screenshot or demo URL. -->
+
+## What I built
+
+I built the regular shopping, checkout, seller, and admin workflows. I also developed local AI, virtual try-on, and 3D experiments on the feature branch; try-on is a generated appearance preview and does not predict sizing or physical fit.
+
+## Run locally
+
+Use Python 3.12 and Node 22.21 or newer; follow the Windows instructions below.
 ## Shop functionality
 
 - Search, categories, filters, sorting, pagination, product photos, stock and size/color options.
@@ -20,8 +29,7 @@ and private MinIO storage. Local mock AI needs no GPU or paid API keys.
 Products can be sold without generating a 3D model. The separate product studio retains
 its reviewed, explicitly labeled **dummy GLB** workflow. Hosted reconstruction has an
 explicitly enabled Meshy adapter, tested with simulated HTTP responses but not a paid
-live task. Photorealistic accuracy is unverified. Clothing/shoe try-on remains
-unimplemented; the mock provider never reconstructs the uploaded product.
+live task. Photorealistic accuracy is unverified. The `main` branch does not provide clothing/shoe try-on; experimental try-on code is on `feat/local-ai-completion`. The mock provider never reconstructs the uploaded product.
 
 Integration audit and operating instructions:
 [feature checklist](AYNA_FEATURE_CHECKLIST.md), [integration report](AYNA_INTEGRATION_REPORT.md),
